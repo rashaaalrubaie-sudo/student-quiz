@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عجلة الحظ - كلية التميز</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
+        p { color: #94a3b8; margin-bottom: 25px; text-align: center; }
+
+        .wheel-container {
+            position: relative;
+            width: 380px;
+            height: 380px;
+        }
+
+        /* المؤشر العلوي */
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ef4444;
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+            border: 5px solid #334155;
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.35, 1);
+        }
+
+        .btn-spin {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
+            transition: 0.2s;
+        }
+        .btn-spin:hover { transform: scale(1.05); }
+
+        .result-modal {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #4ade80;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎡 عجلة الحظ والثقافة</h1>
+    <p>جامعة بغداد - كلية التميز</p>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="380" height="380"></canvas>
+    </div>
+
+    <button class="btn-spin" onclick="spinWheel()">أدر العجلة! 🔄</button>
+    <div class="result-modal" id="result-text"></div>
+
+<script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sectors = [
+        { label: "نظم المعلومات", color: "#0284c7" },
+        { label: "علم البيانات", color: "#7c3aed" },
+        { label: "الفلسفة والاجتماع", color: "#16a34a" },
+        { label: "إدارة الأعمال", color: "#eab308" },
+        { label: "المحاسبة والمصارف", color: "#ea580c" },
+        { label: "🎁 جائزة فورية!", color: "#dc2626" },
+        { label: "⏱️ تحدي الدقيقة", color: "#0891b2" },
+        { label: "🔄 أدر مجدداً", color: "#475569" }
+    ];
+
+    const numSectors = sectors.length;
+    const arc = (2 * Math.PI) / numSectors;
+    let currentRotation = 0;
+
+    // رسم العجلة
+    function drawWheel() {
+        const radius = canvas.width / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < numSectors; i++) {
+            const angle = i * arc;
+            
+            // رسم القطاع
+            ctx.beginPath();
+            ctx.fillStyle = sectors[i].color;
+            ctx.moveTo(radius, radius);
+            ctx.arc(radius, radius, radius, angle, angle + arc);
+            ctx.lineTo(radius, radius);
+            ctx.fill();
+
+            // إضافة النص
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(angle + arc / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px Tahoma, Arial";
+            ctx.fillText(sectors[i].label, radius - 20, 5);
+            ctx.restore();
+        }
+
+        // رسم الدائرة الداخلية في المنتصف
+        ctx.beginPath();
+        ctx.arc(radius, radius, 30, 0, 2 * Math.PI);
+        ctx.fillStyle = "#0f172a";
+        ctx.fill();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    let isSpinning = false;
+
+    function spinWheel() {
+        if (isSpinning) return;
+        isSpinning = true;
+        document.getElementById('result-text').innerText = "";
+
+        // حساب زاوية تدوير عشوائية (على الأقل 5 دورات كاملة)
+        const randomDegree = Math.floor(Math.random() * 360) + 1800;
+        currentRotation += randomDegree;
+
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        // تحديد النتيجة بعد انتهاء الأنيميشن (4 ثوانٍ)
+        setTimeout(() => {
+            isSpinning = false;
+            const actualDegree = currentRotation % 360;
+            // حساب القطاع الفائز تحت المؤشر العلي
+            const index = Math.floor((360 - (actualDegree % 360) + 270) % 360 / (360 / numSectors));
+            document.getElementById('result-text').innerText = "النتيجة: " + sectors[index].label;
+        }, 4000);
+    }
+
+    drawWheel();
+</script>
+
+</body>
+</html>
