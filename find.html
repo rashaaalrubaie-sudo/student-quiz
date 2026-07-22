@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مُحلل الشخصية الأكاديمية - كلية التميز</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 680px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+        }
+        h1 { font-size: 26px; color: #4facfe; margin-bottom: 5px; }
+        h2 { font-size: 16px; color: #ddd; margin-bottom: 25px; font-weight: normal; }
+        .input-group { margin-bottom: 20px; text-align: right; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: none;
+            box-sizing: border-box; font-size: 16px;
+        }
+        .btn {
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            border: none; color: #fff; padding: 14px 28px; font-size: 18px;
+            font-weight: bold; border-radius: 10px; cursor: pointer;
+            width: 100%; margin-top: 15px; transition: 0.3s;
+        }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.25);
+            color: #fff; padding: 12px 15px; margin: 8px 0; border-radius: 10px;
+            width: 100%; text-align: right; cursor: pointer; font-size: 15px; transition: 0.2s;
+            line-height: 1.5;
+        }
+        .option-btn:hover { background: rgba(79, 172, 254, 0.4); border-color: #4facfe; }
+        .hidden { display: none; }
+        .result-badge {
+            background: #fff; color: #2c5364; padding: 25px;
+            border-radius: 15px; margin-top: 20px; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .progress-bar {
+            width: 100%; background-color: rgba(255,255,255,0.2);
+            border-radius: 10px; margin-bottom: 20px; height: 10px; overflow: hidden;
+        }
+        .progress { width: 0%; height: 100%; background: #00f2fe; transition: 0.3s; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="main-card">
+    <!-- الشاشة الأولى: إدخال الاسم -->
+    <div id="step-start">
+        <h1>🎓 اكتشف تخصصك مستقبلاً</h1>
+        <h2>جامعة بغداد - كلية التميز</h2>
+        <div class="input-group">
+            <label for="student-name">أدخل اسمك الكريـــم:</label>
+            <input type="text" id="student-name" placeholder="مثال: علي أحمد">
+        </div>
+        <button class="btn" onclick="startQuiz()">ابدأ التحليل 🚀</button>
+    </div>
+
+    <!-- الشاشة الثانية: الأسئلة -->
+    <div id="step-quiz" class="hidden">
+        <div class="progress-bar"><div class="progress" id="progress-line"></div></div>
+        <h3 id="question-text" style="text-align: right; font-size: 18px; line-height: 1.6;"></h3>
+        <div id="options-container"></div>
+    </div>
+
+    <!-- الشاشة الثالثة: النتيجة -->
+    <div id="step-result" class="hidden">
+        <h2>🎉 تم تحليل شخصيتك الأكاديمية بنجاح!</h2>
+        <div class="result-badge">
+            <p style="font-size: 18px; margin:0;" id="user-display">عزيزي الطالب</p>
+            <h2 style="color: #0072ff; font-size: 24px; margin: 12px 0;" id="result-title">التخصص المناسب</h2>
+            <p style="color: #444; font-size: 15px; line-height: 1.6;" id="result-desc"></p>
+        </div>
+        <button class="btn" onclick="resetQuiz()">إعادة الاختبار 🔄</button>
+    </div>
+</div>
+
+<script>
+    let studentName = "";
+    let currentQuestion = 0;
+    let scores = { ds: 0, ais: 0, phil: 0, bus: 0, acc: 0, external: 0 };
+    let selectedExternalInterest = "";
+
+    const questions = [
+        {
+            q: "1️⃣ عندما تفكر في مستقبلك والشيء الذي يثير شغفك أكثر، ما هو؟",
+            options: [
+                { text: "قراءة سلوك المجتمعات، تحليل الأفكار الإنسانية، وفهم كيف يفكر الناس.", type: "phil" },
+                { text: "استكشاف البيانات الضخمة، استخراج الأنماط، وتدريب الخوارزميات والذكاء الاصطناعي.", type: "ds" },
+                { text: "تصميم وتطوير الأنظمة الرقمية لتسهيل العمليات والتواصل داخل المؤسسات.", type: "ais" },
+                { text: "إطلاق المشاريع التجارية، التسوق الرقمي، وإدارة العلامات التجارية على الإنترنت.", type: "bus" },
+                { text: "الاستثمار، الأرقام المالية، إدارة الأموال، وكيف تعمل البنوك والأسواق المالية.", type: "acc" }
+            ]
+        },
+        {
+            q: "2️⃣ تخيل أنك ضمن فريق يهدف لبناء منصة رقمية جديدة، ما هو الدور الذي تفضل قيادته؟",
+            options: [
+                { text: "دراسة أثر المنصة على المجتمع والتحقق من مدى قبول الناس لها أخلاقياً واجتماعياً.", type: "phil" },
+                { text: "بناء خوارزميات ذكية تتنبأ بسلوك المستخدِمين وتوصي لهم بالحلول.", type: "ds" },
+                { text: "ربط قواعد البيانات بالشاشات والتأكد من سرعة وسلاسة تشغيل النظام بالكامل.", type: "ais" },
+                { text: "وضع خطة التسويق الإلكتروني، التسعير، واستراتيجية جذب العملاء والمبيعات.", type: "bus" },
+                { text: "حساب التكاليف، إدارة الميزانية، وتحديد الأرباح والتدفقات المالية للمشروع.", type: "acc" }
+            ]
+        },
+        {
+            q: "3️⃣ ما نوع الألغاز والتحديات التي تستمتع بفك أسرارها؟",
+            options: [
+                { text: "مناقشة الآراء والظواهر الاجتماعية، وتفكيك الظواهر الفكرية والسلوكية.", type: "phil" },
+                { text: "اكتشاف العلاقات بين الأرقام الضخمة والجداول المعقدة واستخراج استنتاجات ذكية.", type: "ds" },
+                { text: "حل الألغاز التقنية، ترتيب الخطوات المنطقية، وبناء الحلول البرمجية الشاملة.", type: "ais" },
+                { text: "حل المشاكل الإدارية، ابتكار أفكار تجارية جديدة، وإقناع الآخرين بجدواها.", type: "bus" },
+                { text: "الموازنات المالية، كشف فروقات الحسابات، وتحليل المؤشرات المالية ودقة الأرقام.", type: "acc" }
+            ]
+        },
+        {
+            q: "4️⃣ لو طُلب منك إعطاء ورشة عمل قصيرة، ماذا سيكون موضوعها المفضّل؟",
+            options: [
+                { text: "كيف نفهم التغيرات الاجتماعية والتفكير النقدي في العصر الحديث؟", type: "phil" },
+                { text: "كيف يُغير الذكاء الاصطناعي وتحليل البيانات وجه العالم مستقبلاً؟", type: "ds" },
+                { text: "كيف تبني تطبيقاً أو نظاماً رقمياً يدير مؤسسة بالكامل؟", type: "ais" },
+                { text: "أسرار النجاح في التجارة الإلكترونية وإدارة المتاجر والمشاريع الرقمية.", type: "bus" },
+                { text: "كيف تدير الميزانيات والاستثمارات المالية وتفهم التداول والمصارف؟", type: "acc" }
+            ]
+        },
+        {
+            q: "5️⃣ في مستقبلك المهني بعد التخرج، كيف تحب أن يُشار إليك؟",
+            options: [
+                { text: "باحث ومفكر اجتماعي ومحلل للظواهر الإنسانية والسلوك البشري.", type: "phil" },
+                { text: "عالم بيانات ومهندس خوارزميات وأنظمة ذكية وتنبؤية.", type: "ds" },
+                { text: "محلل ومطور نظم معلومات تطبيقية ومشاريع تقنية.", type: "ais" },
+                { text: "رائد أعمال ومدير تجارة إلكترونية ومشاريع استثمارية.", type: "bus" },
+                { text: "مستشار مالي، محاسب قانوني، أو خبير مصرفي واستثماري.", type: "acc" }
+            ]
+        },
+        {
+            q: "6️⃣ بعيداً عن الدراسة والتخصصات الأكاديمية، ما هي الهواية أو المجال الخارجي الأقرب إلى قلبك؟",
+            options: [
+                { text: "الفنون البصرية، الرسم، التصوير، أو الإنتاج الفني والموسيقي.", type: "external", detail: "الفنون والتصميم الإبداعي" },
+                { text: "العلوم الطبية، الصحة، والاهتمام برعاية الكائنات ومساعدة المرضى.", type: "external", detail: "العلوم الطبية والصحية" },
+                { text: "الأدب، الكتابة والتدوين، اللغات، أو الخطابة والإلقاء.", type: "external", detail: "الأدب واللغات والإنتاج الفكري" },
+                { text: "الرياضة، اللياقة البدنية، والتحديات والأنشطة الحركية.", type: "external", detail: "الرياضة واللياقة البدنية" },
+                { text: "اهتماماتي تنحصر أساساً في مجالات التقنية، الإدارة، والعلوم الاجتماعية.", type: "none" }
+            ]
+        }
+    ];
+
+    function startQuiz() {
+        const nameInput = document.getElementById("student-name").value;
+        if (!nameInput.trim()) { alert("يرجى إدخال اسمك أولاً!"); return; }
+        studentName = nameInput;
+        document.getElementById("step-start").classList.add("hidden");
+        document.getElementById("step-quiz").classList.remove("hidden");
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById("question-text").innerText = q.q;
+        
+        const progressPercent = ((currentQuestion + 1) / questions.length) * 100;
+        document.getElementById("progress-line").style.width = `${progressPercent}%`;
+
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+        q.options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(opt.type, opt.detail);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(type, detail) {
+        if (type === 'external') {
+            scores.external += 2; // إعطاء وزن للاهتمام الخارجي
+            selectedExternalInterest = detail;
+        } else if (type !== 'none') {
+            scores[type]++;
+        }
+
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("step-quiz").classList.add("hidden");
+        document.getElementById("step-result").classList.remove("hidden");
+        document.getElementById("user-display").innerText = `الطالب/ة: ${studentName}`;
+
+        let topType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        
+        if (topType === 'external' && selectedExternalInterest) {
+            document.getElementById("result-title").innerText = `لديك شغف مميز في مجال (${selectedExternalInterest})`;
+            document.getElementById("result-desc").innerText = "شغفك الشخصي هو البوصلة الأولى لنجاحك! ورغم أن هذا المجال يقع خارج التخصصات الأكاديمية المباشرة لكليتنا، إلا أننا نشجعك دائماً على اتباع شغفك الحقيقي، أو استكشاف كيف يمكنك دمج مهاراتك الإبداعية والأنشطة الطلابية مع برامج التقنية والإدارة والبيانات التي تقدمها كليتنا لتكون شخصية مميزة ورائدة في مستقبلك.";
+        } else if (topType === 'ds') {
+            document.getElementById("result-title").innerText = "قسم علم البيانات (Data Science)";
+            document.getElementById("result-desc").innerText = "تمتلك عقليّة تحليلية رفيعة! ينسجم شغفك مع اكتشاف الأنماط في البيانات الضخمة، بناء نماذج الذكاء الاصطناعي، واستخراج الاستنتاجات الذكية التي تقود قرارات المستقبل.";
+        } else if (topType === 'ais') {
+            document.getElementById("result-title").innerText = "قسم نظم المعلومات التطبيقية (Applied Information Systems)";
+            document.getElementById("result-desc").innerText = "تمتلك عقلية تقنية وتنفيذية ممتازة! يثير شغفك ابتكار الحلول البرمجية، تصميم قواعد البيانات، وتطوير الأنظمة الرقمية التي ترتقي بأداء المؤسسات والشركات.";
+        } else if (topType === 'phil') {
+            document.getElementById("result-title").innerText = "قسم الفلسفة وعلم الاجتماع (Philosophy & Sociology)";
+            document.getElementById("result-desc").innerText = "تمتلك حساً نقدياً وفكرياً عميقاً! تناسبك دراسة السلوك البشري، فهم الظواهر الاجتماعية، وتفكيك الأفكار والتعمق في الفلسفة لبناء مجتمعات أكثر وعياً.";
+        } else if (topType === 'bus') {
+            document.getElementById("result-title").innerText = "قسم إدارة الأعمال والتجارة الإلكترونية (Business & E-Commerce)";
+            document.getElementById("result-desc").innerText = "تمتلك روح القيادة والابتكار التجاري! تبرع في إدارة المشاريع الحديثة، ابتكار المتاجر الرقمية، وصياغة استراتيجيات التسويق والنمو في الفضاء الرقمي.";
+        } else {
+            document.getElementById("result-title").innerText = "قسم المحاسبة والمصارف (Accounting & Banking)";
+            document.getElementById("result-desc").innerText = "تمتلك دقة عالية وشغفاً بعالم المال والأرقام! يناسبك تحليل الميزانيات، فهم الاستثمار والأسواق المالية، وإدارة المؤسسات المصرفية والمحاسبية بثبات.";
+        }
+    }
+
+    function resetQuiz() {
+        currentQuestion = 0;
+        scores = { ds: 0, ais: 0, phil: 0, bus: 0, acc: 0, external: 0 };
+        selectedExternalInterest = "";
+        document.getElementById("step-result").classList.add("hidden");
+        document.getElementById("step-start").classList.remove("hidden");
+        document.getElementById("student-name").value = "";
+    }
+</script>
+</body>
+</html>
