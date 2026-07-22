@@ -6,120 +6,166 @@
     <title>عجلة الحظ - كلية التميز</title>
     <style>
         body {
-            background: #4d43e8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            font-family: sans-serif;
-            color: white;
+            padding: 20px;
         }
-        .wheel-box {
+        h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
+        p { color: #94a3b8; margin-bottom: 25px; text-align: center; }
+
+        .wheel-container {
             position: relative;
-            width: 320px;
-            height: 320px;
-            margin-top: 20px;
+            width: 380px;
+            height: 380px;
         }
+
+        /* المؤشر العلوي */
         .pointer {
             position: absolute;
-            top: -10px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 0; height: 0;
-            border-left: 18px solid transparent;
-            border-right: 18px solid transparent;
-            border-top: 35px solid #d4af37;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ef4444;
             z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
         }
-        .outer-rim {
-            width: 100%; height: 100%;
+
+        canvas {
             border-radius: 50%;
-            background: #113886;
-            padding: 12px;
-            box-sizing: border-box;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+            border: 5px solid #334155;
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.35, 1);
         }
-        canvas { width: 100%; height: 100%; border-radius: 50%; }
-        .center-circle {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px; height: 80px;
-            background: #0d2b6b;
-            border-radius: 50%;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+
+        .btn-spin {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #0f172a;
             font-weight: bold;
             font-size: 18px;
-            border: 3px solid #1e4ea8;
-            cursor: pointer;
-        }
-        button.spin-btn {
-            margin-top: 30px;
-            padding: 12px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            background: #ffd700;
-            color: #000;
             border: none;
-            border-radius: 25px;
+            padding: 14px 40px;
+            border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
+            transition: 0.2s;
+        }
+        .btn-spin:hover { transform: scale(1.05); }
+
+        .result-modal {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #4ade80;
+            height: 30px;
         }
     </style>
 </head>
 <body>
 
-    <h2>🎡 عجلة الحظ التفاعلية</h2>
-    <div class="wheel-box">
+    <h1>🎡 عجلة الحظ والثقافة</h1>
+    <p>جامعة بغداد - كلية التميز</p>
+
+    <div class="wheel-container">
         <div class="pointer"></div>
-        <div class="outer-rim">
-            <canvas id="wheel" width="300" height="300"></canvas>
-        </div>
-        <div class="center-circle" onclick="spin()">SPIN</div>
+        <canvas id="wheelCanvas" width="380" height="380"></canvas>
     </div>
-    <button class="spin-btn" onclick="spin()">دَوّر العجلة 🚀</button>
+
+    <button class="btn-spin" onclick="spinWheel()">أدر العجلة! 🔄</button>
+    <div class="result-modal" id="result-text"></div>
 
 <script>
-    const canvas = document.getElementById('wheel');
+    const canvas = document.getElementById('wheelCanvas');
     const ctx = canvas.getContext('2d');
-    const colors = ['#e91e63', '#9c27b0', '#ff9800', '#4caf50', '#00bcd4'];
-    const labels = ['سؤال 1', 'سؤال 2', 'سؤال 3', 'سؤال 4', 'سؤال 5'];
-    let currentAngle = 0;
 
+    const sectors = [
+        { label: "نظم المعلومات", color: "#0284c7" },
+        { label: "علم البيانات", color: "#7c3aed" },
+        { label: "الفلسفة والاجتماع", color: "#16a34a" },
+        { label: "إدارة الأعمال", color: "#eab308" },
+        { label: "المحاسبة والمصارف", color: "#ea580c" },
+        { label: "🎁 جائزة فورية!", color: "#dc2626" },
+        { label: "⏱️ تحدي الدقيقة", color: "#0891b2" },
+        { label: "🔄 أدر مجدداً", color: "#475569" }
+    ];
+
+    const numSectors = sectors.length;
+    const arc = (2 * Math.PI) / numSectors;
+    let currentRotation = 0;
+
+    // رسم العجلة
     function drawWheel() {
-        const numSectors = 5;
-        const arc = (2 * Math.PI) / numSectors;
-        for (let i = 0; i < numSectors; i++) {
-            const angle = currentAngle + i * arc;
-            ctx.beginPath();
-            ctx.fillStyle = colors[i];
-            ctx.moveTo(150, 150);
-            ctx.arc(150, 150, 150, angle, angle + arc);
-            ctx.lineTo(150, 150);
-            ctx.fill();
-        }
-    }
-    drawWheel();
+        const radius = canvas.width / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function spin() {
-        let rotation = Math.floor(Math.random() * 360) + 1440;
-        let start = null;
-        function animate(timestamp) {
-            if (!start) start = timestamp;
-            let progress = timestamp - start;
-            if (progress < 3000) {
-                currentAngle += (rotation / 200) * (Math.PI / 180);
-                drawWheel();
-                requestAnimationFrame(animate);
-            }
+        for (let i = 0; i < numSectors; i++) {
+            const angle = i * arc;
+            
+            // رسم القطاع
+            ctx.beginPath();
+            ctx.fillStyle = sectors[i].color;
+            ctx.moveTo(radius, radius);
+            ctx.arc(radius, radius, radius, angle, angle + arc);
+            ctx.lineTo(radius, radius);
+            ctx.fill();
+
+            // إضافة النص
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(angle + arc / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px Tahoma, Arial";
+            ctx.fillText(sectors[i].label, radius - 20, 5);
+            ctx.restore();
         }
-        requestAnimationFrame(animate);
+
+        // رسم الدائرة الداخلية في المنتصف
+        ctx.beginPath();
+        ctx.arc(radius, radius, 30, 0, 2 * Math.PI);
+        ctx.fillStyle = "#0f172a";
+        ctx.fill();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3;
+        ctx.stroke();
     }
+
+    let isSpinning = false;
+
+    function spinWheel() {
+        if (isSpinning) return;
+        isSpinning = true;
+        document.getElementById('result-text').innerText = "";
+
+        // حساب زاوية تدوير عشوائية (على الأقل 5 دورات كاملة)
+        const randomDegree = Math.floor(Math.random() * 360) + 1800;
+        currentRotation += randomDegree;
+
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        // تحديد النتيجة بعد انتهاء الأنيميشن (4 ثوانٍ)
+        setTimeout(() => {
+            isSpinning = false;
+            const actualDegree = currentRotation % 360;
+            // حساب القطاع الفائز تحت المؤشر العلي
+            const index = Math.floor((360 - (actualDegree % 360) + 270) % 360 / (360 / numSectors));
+            document.getElementById('result-text').innerText = "النتيجة: " + sectors[index].label;
+        }, 4000);
+    }
+
+    drawWheel();
 </script>
+
 </body>
 </html>
